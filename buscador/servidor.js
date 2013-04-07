@@ -16,16 +16,29 @@ function buscar(data){
 	    
        {       
                 
-               
-         db.usuarios.find({ $or: [{ nombre : new RegExp(data.texto,"i")} , { barrio : new RegExp(data.texto,"i") }] } , function(err,resp){
+       var count;
+
+       if(!data.nPag)
+           data.nPag = 1;
+
+      console.log(data.nPag);
+
+       db.usuarios.find({ $or: [{ nombre : new RegExp(data.texto,"i")} , { barrio : new RegExp(data.texto,"i") }] }).count(function(e,r){
+  
+              count = r;
+
+               db.usuarios.find({ $or: [{ nombre : new RegExp(data.texto,"i")} , { barrio : new RegExp(data.texto,"i") }] }).skip( (data.nPag - 1) * 50 ).limit(50, function(err,resp){
+
 
               if(!err)
-                io.sockets.socket(data.socket).emit("result", { resp : resp , total : resp.length } );
+                io.sockets.socket(data.socket).emit("result", { resp : resp , total_pagina : resp.length , total : count } );
               else
                 io.sockets.socket(data.socket).emit("result",{err:1,resp:resp});
               
 
-         }).skip(3).limit(50);
+         });
+
+       });      
       
 
        }
